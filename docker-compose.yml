@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  minio:
+    image: minio/minio
+    command: server /data
+    ports:
+      - "9000:9000"
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - minio
+    environment:
+      - DEBUG=1
+      - MINIO_API_HOST=minio
+      - MINIO_API_PORT=9000
